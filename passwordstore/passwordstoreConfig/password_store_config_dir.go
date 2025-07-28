@@ -1,36 +1,57 @@
-package passwordstoreComponents
+package passwordstoreConfig
 
 import (
+	"os"
 	"path/filepath"
-	"vb-password-store-base/passwordstore/io"
-	"vb-password-store-base/passwordstore/passwordstoreConfig"
+	"vb-password-store-base/passwordstore"
+	"vb-password-store-base/passwordstore/passwordstoreFilesystem"
 )
 
 type PasswordStoreConfigDir struct {
 	name         string
 	path         string
-	owner        passwordstoreConfig.Owner
-	readers      passwordstoreConfig.Reader
-	writers      passwordstoreConfig.Writer
-	encryptionId passwordstoreConfig.EncryptionId
-	lastEdited   passwordstoreConfig.LastEdited
+	owner        passwordstore.PasswordStoreFile
+	readers      passwordstore.PasswordStoreFile
+	writers      passwordstore.PasswordStoreFile
+	encryptionId passwordstore.PasswordStoreFile
+	lastEdited   passwordstore.PasswordStoreFile
 }
 
-func NewPasswordStoreConfig(path, name, owner, encryptionId string, readers, writers []string) *PasswordStoreConfigDir {
-	var rekPath string = filepath.Join(path, name)
-	var ownerFileObj passwordstoreConfig.Owner = *passwordstoreConfig.NewOwner(rekPath, owner)
-	var encryptionFileObj passwordstoreConfig.EncryptionId = *passwordstoreConfig.NewEncryptionId(rekPath, encryptionId)
-	var readersFileObj passwordstoreConfig.Reader = *passwordstoreConfig.NewReader(rekPath, readers)
-	var writerFileObj passwordstoreConfig.Writer = *passwordstoreConfig.NewWriter(rekPath, writers)
-	var lastEditedFileObj passwordstoreConfig.LastEdited = *passwordstoreConfig.NewLastEdited(rekPath)
-
-	return &PasswordStoreConfigDir{name: "config", owner: ownerFileObj, encryptionId: encryptionFileObj, readers: readersFileObj, writers: writerFileObj, lastEdited: lastEditedFileObj}
+func (store *PasswordStoreConfigDir) AddDirToFileSystem() {
+	passwordstoreFilesystem.WriteDirectory(store)
+	passwordstoreFilesystem.WriteFileContents(store.owner)
+	passwordstoreFilesystem.WriteFileContents(store.readers)
+	passwordstoreFilesystem.WriteFileContents(store.writers)
+	passwordstoreFilesystem.WriteFileContents(store.encryptionId)
+	passwordstoreFilesystem.WriteFileContents(store.lastEdited)
 }
 
-func (cfg *PasswordStoreConfigDir) GetName() string {
-	return cfg.name
+func NewPasswordStoreConfig(path, owner, encryptionId string, readers, writers []string) *PasswordStoreConfigDir {
+	var rekPath string = filepath.Join(path, "config")
+	var ownerFileObj passwordstore.PasswordStoreFile = NewOwner(rekPath, owner)
+	var encryptionFileObj passwordstore.PasswordStoreFile = NewEncryptionId(rekPath, encryptionId)
+	var readersFileObj passwordstore.PasswordStoreFile = NewReader(rekPath, readers)
+	var writerFileObj passwordstore.PasswordStoreFile = NewWriter(rekPath, writers)
+	var lastEditedFileObj passwordstore.PasswordStoreFile = NewLastEdited(rekPath)
+
+	return &PasswordStoreConfigDir{path: path, name: "config", owner: ownerFileObj, encryptionId: encryptionFileObj, readers: readersFileObj, writers: writerFileObj, lastEdited: lastEditedFileObj}
 }
 
-func (cfg *PasswordStoreConfigDir) WriteDirectoryConfigContent() {
-	io.WriteFileContents(&cfg.owner)
+func (store *PasswordStoreConfigDir) GetDirName() string {
+	return store.name
+}
+
+func (store *PasswordStoreConfigDir) GetUnderlyingDirectoryPath() string {
+	return store.path
+}
+
+func (cfg *PasswordStoreConfigDir) ReadDirectory(entry os.DirEntry) passwordstore.PasswordStoreDir {
+	if !entry.IsDir() {
+		cfg.owner = passwordstoreFilesystem.ReadFile(cfg.owner)
+		cfg.encryptionId = passwordstoreFilesystem.ReadFile(cfg.encryptionId)
+		cfg.readers = passwordstoreFilesystem.ReadFile(cfg.readers)
+		cfg.writers = passwordstoreFilesystem.ReadFile(cfg.writers)
+		cfg.lastEdited = passwordstoreFilesystem.ReadFile(cfg.lastEdited)
+	}
+	return cfg
 }
