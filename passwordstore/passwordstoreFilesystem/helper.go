@@ -11,7 +11,7 @@ func (dir *PasswordStoreDir) checkIfUnderlayingDirIsContentDir(entry os.DirEntry
 	if error != nil {
 		panic(error)
 	}
-	if entrys[0].IsDir() {
+	if !entrys[0].IsDir() {
 		newDirShouldBeContentDir = true
 	}
 	return newDirShouldBeContentDir
