@@ -2,6 +2,7 @@ package passwordstoreFilesystem
 
 import (
 	"os"
+	"strings"
 )
 
 func ReadFiles(contentDir PasswordStoreContentDir) []File {
@@ -33,6 +34,25 @@ func ReadFile(file File) File {
 
 func ReadDir(dir Directory) Directory {
 	entrys, err := os.ReadDir(dir.GetAbsoluteDirectoryPath())
+	if err != nil {
+		panic(err)
+	}
+	for _, entry := range entrys {
+		if entry.IsDir() {
+			dir.ReadDirectoryRec(entry)
+		} else {
+
+		}
+	}
+	return dir
+}
+
+func ReadDirDownFromPath(path string) PasswordStoreDir {
+	entrys, err := os.ReadDir(path)
+	dirPathSplit := strings.Split(path, "/")
+	dirName := dirPathSplit[len(dirPathSplit)-1]
+	dirPathSplit = dirPathSplit[:len(dirPathSplit)-1]
+	dir := CreateNewEmptyStoreDir(dirName, strings.Join(dirPathSplit, "/"))
 	if err != nil {
 		panic(err)
 	}

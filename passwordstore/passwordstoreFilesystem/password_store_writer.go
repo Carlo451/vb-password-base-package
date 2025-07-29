@@ -7,13 +7,21 @@ import (
 
 func WriteFileContents(file File) {
 	file.SetContent(file.GetContent() + "\n")
-	err := os.WriteFile(file.GetAbsolutePath(), []byte(file.GetContent()), 0644)
+	f, err := os.OpenFile(file.GetAbsolutePath(), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+	_, err = f.WriteString(file.GetContent())
+	if err != nil {
+		log.Fatal(err)
+	}
+	/*err := os.WriteFile(file.GetAbsolutePath(), []byte(file.GetContent()), 0644)
 	if err != nil {
 		log.Fatal(err)
 	} else {
 		log.Default().Println("File: " + file.GetAbsolutePath() + " written successfully")
-	}
-
+	}*/
 }
 
 func WriteDirectory(dir Directory) {
@@ -24,4 +32,13 @@ func WriteDirectory(dir Directory) {
 		log.Default().Println("Directory: " + dir.GetAbsoluteDirectoryPath() + " written successfully")
 	}
 
+}
+
+func RemoveDirectory(dir Directory) {
+	err := os.RemoveAll(dir.GetAbsoluteDirectoryPath())
+	if err != nil {
+		log.Default().Println("Directory: " + dir.GetAbsoluteDirectoryPath() + " could not be created because " + err.Error())
+	} else {
+		log.Default().Println("Directory: " + dir.GetAbsoluteDirectoryPath() + " written successfully")
+	}
 }

@@ -1,6 +1,9 @@
 package api
 
-import "vb-password-store-base/passwordstore/passwordstoreFilesystem"
+import (
+	"errors"
+	"vb-password-store-base/passwordstore/passwordstoreFilesystem"
+)
 
 func CreateRootDir(path, name, owner, encryptionId string) passwordstoreFilesystem.PasswordStoreDir {
 	rootDir := passwordstoreFilesystem.CreateNewEmptyStoreDir(name, path)
@@ -53,3 +56,23 @@ func addAndWriteContentToContentDirectory(content, identifier string, contentDir
 	contentDir.AppendFile(file)
 	contentDir.WriteDirectory()
 }
+
+func writeOrOverrideFileInContentDir(dir passwordstoreFilesystem.PasswordStoreDir, contentDirName, content, identifier string) (bool, error) {
+	contentDirs := dir.GetContentDirectories()
+	for _, contentDir := range contentDirs {
+		if contentDir.GetDirName() == contentDirName {
+			contentDir.CreateAndAppend(content, identifier)
+			return true, nil
+		}
+	}
+	return false, errors.New("content directory not found")
+}
+
+/*func removeEmptyDirsRecUpWards(lastSubDir passwordstoreFilesystem.PasswordStoreDir) {
+	if len(lastSubDir.GetAllDirs()) < 2 {
+		passwordstoreFilesystem.RemoveDirectory(&lastSubDir)
+		removeEmptyDirsRecUpWards(lastSubDir.Ge)
+	} else {
+		return
+	}
+}*/

@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"vb-password-store-base/logger"
 	"vb-password-store-base/passwordstore/passwordstoreFilesystem"
 	"vb-password-store-base/pathparser"
 )
@@ -16,7 +17,8 @@ func CreatePasswordStore(path, name, user, encryptionId string) passwordstoreFil
 func ReadPasswordStore(path, name string) passwordstoreFilesystem.PasswordStoreDir {
 	var rootdir passwordstoreFilesystem.PasswordStoreDir = *CreateNotLoadedRootDir(path, name)
 	rootdir.ReadDirectory()
-	return rootdir
+	return passwordstoreFilesystem.ReadDirDownFromPath(filepath.Join(path, name))
+	//return rootdir
 }
 
 // AddContentDirectoryToStore Adds a new Content directory with the given content and identifiers as well as the corresponding subdirectories in the path
@@ -59,17 +61,55 @@ func InsertContentInContentDirectory(path, basePath, storeName, content, identif
 		parsedPath := pathparser.ParsePathWithContentDirectory(filepath.Join(basePath, storeName), path)
 		dir, exists, _ := checkIfSubDirPathExistsAndReturnLastSubDir(store, parsedPath.SubDirectories)
 		if exists {
-			contentDirs := dir.GetContentDirectories()
-			for _, contentDir := range contentDirs {
-				if contentDir.GetDirName() == parsedPath.ContentDirectory {
-					contentDir.CreateAndAppend(content, identifier)
-					return true, nil
-				}
-			}
+			return writeOrOverrideFileInContentDir(dir, parsedPath.ContentDirectory, content, identifier)
 		}
 	}
 	return false, errors.New("the content directory in the Path does not exist")
 }
+
+// UpdateContentInContentDirectory updates the content of a content file - or creates a content file if the one with that identifer does not exist
+// path - path to the content Directory
+// basePath - path to the Password Store Base - the directory where all Stores are stored
+// storeName - the name of the root password store
+// content - the content
+// identifier - the name of the file
+func UpdateContentInContentDirectory(path, basePath, storeName, content, identifier string) (bool, error) {
+	dirExists, err := CheckIfContentDirectoryExists(path)
+	if err != nil {
+		logger.ApiLogger.Error("the content directory does not exist")
+		return false, err
+	}
+	if dirExists {
+		if !CheckIfContentFileExists(filepath.Join(path, identifier)) {
+			logger.ApiLogger.Warn("the file doesn't exist yet but it will be created")
+			return InsertContentInContentDirectory(path, basePath, storeName, content, identifier)
+		}
+		store := ReadPasswordStore(basePath, storeName)
+		parsedPath := pathparser.ParsePathWithContentDirectory(filepath.Join(basePath, storeName), path)
+		dir, exists, _ := checkIfSubDirPathExistsAndReturnLastSubDir(store, parsedPath.SubDirectories)
+		if exists {
+			return writeOrOverrideFileInContentDir(dir, parsedPath.ContentDirectory, content, identifier)
+		}
+	}
+	return false, errors.New("the content directory in the Path does not exist")
+}
+
+/*func RemoveContentDirectory(path, basePath, storeName, content, identifier string) (bool, error) {
+	dirExists, err := CheckIfContentDirectoryExists(path)
+	if err != nil {
+		logger.ApiLogger.Error("the content directory does not exist")
+		return false, err
+	}
+	if dirExists {
+		store := ReadPasswordStore(basePath, storeName)
+		parsedPath := pathparser.ParsePathWithContentDirectory(filepath.Join(basePath, storeName), path)
+		dir, exists, _ := checkIfSubDirPathExistsAndReturnLastSubDir(store, parsedPath.SubDirectories)
+		if exists {
+			return writeOrOverrideFileInContentDir(dir, parsedPath.ContentDirectory, content, identifier)
+		}
+	}
+	store := ReadPasswordStore(basePath, storeName)
+}*/
 
 func CheckIfContentDirectoryExists(path string) (bool, error) {
 	entry, err := os.ReadDir(path)
@@ -83,7 +123,7 @@ func CheckIfContentDirectoryExists(path string) (bool, error) {
 			return true, nil
 		}
 	}
-	log.Default().Println("Seems like a empty directory exists, but is not a content Directory -> it will get cleanedUp")
+	log.Default().Println("Seems like a empty directory exists, but is not a sub Directory -> it will get cleanedUp")
 	CleanUpContentDirectory(path)
 	return false, errors.New("the directory does not exist")
 

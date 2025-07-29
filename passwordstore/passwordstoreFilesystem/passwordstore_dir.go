@@ -87,6 +87,10 @@ func (p *PasswordStoreDir) AddContentDirectory(directory PasswordStoreContentDir
 	p.AddDirectory(&directory)
 }
 
+/*func (p *PasswordStoreDir) GetUnderlayingSubDirectory() *Directory {
+	return ReadDirFromPath(p.directoryPath)
+}*/
+
 /*func (p *PasswordStoreDir) FindContentDirectoryByName(name string) PasswordStoreContentDir {
 	contentDirs := p.GetContentDirectories()
 	for _, dir := range contentDirs {

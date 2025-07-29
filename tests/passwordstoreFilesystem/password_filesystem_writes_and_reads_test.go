@@ -100,3 +100,25 @@ func TestInsertContentWhenContentDirDoesNotExist(t *testing.T) {
 	}
 	teardown()
 }
+
+func TestUpdateContentInContentDir(t *testing.T) {
+	setup()
+	api.AddContentDirectoryToStore(filepath.Join(basePath, storeName+"/extraContent/doubleextraContent"), basePath, storeName, "content", "password123", "password")
+	api.AddContentDirectoryToStore(filepath.Join(basePath, storeName+"/extraContent"), basePath, storeName, "content", "password123", "password")
+	check, _ := api.UpdateContentInContentDirectory(filepath.Join(basePath, storeName+"/extraContent/content"), basePath, storeName, "camo123", "password")
+	if !check {
+		t.Errorf("Inserted content should have been inserted")
+	}
+	teardown()
+}
+
+func TestUpdateContentInContentDirWithNoCorrespondingContentFile(t *testing.T) {
+	setup()
+	api.AddContentDirectoryToStore(filepath.Join(basePath, storeName+"/extraContent/doubleextraContent"), basePath, storeName, "content", "password123", "password")
+	api.AddContentDirectoryToStore(filepath.Join(basePath, storeName+"/extraContent"), basePath, storeName, "content", "password123", "password")
+	check, _ := api.UpdateContentInContentDirectory(filepath.Join(basePath, storeName+"/extraContent/content"), basePath, storeName, "password", "username")
+	if !check {
+		t.Errorf("Inserted content should have been inserted")
+	}
+	teardown()
+}
