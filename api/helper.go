@@ -68,11 +68,12 @@ func writeOrOverrideFileInContentDir(dir passwordstoreFilesystem.PasswordStoreDi
 	return false, errors.New("content directory not found")
 }
 
-/*func removeEmptyDirsRecUpWards(lastSubDir passwordstoreFilesystem.PasswordStoreDir) {
-	if len(lastSubDir.GetAllDirs()) < 2 {
+func removeEmptyDirsRecUpWards(lastSubDir passwordstoreFilesystem.PasswordStoreDir) {
+	if len(lastSubDir.GetAllDirs()) == 0 {
 		passwordstoreFilesystem.RemoveDirectory(&lastSubDir)
-		removeEmptyDirsRecUpWards(lastSubDir.Ge)
+		overlayingStore := passwordstoreFilesystem.ReadDirDownFromPath(lastSubDir.GetDirEntryPath())
+		removeEmptyDirsRecUpWards(overlayingStore)
 	} else {
 		return
 	}
-}*/
+}

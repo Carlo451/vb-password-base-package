@@ -11,6 +11,10 @@ type PasswordStoreContentDir struct {
 	contents      []File
 }
 
+func (p *PasswordStoreContentDir) GetDirEntryPath() string {
+	return p.directoryPath
+}
+
 func (p *PasswordStoreContentDir) GetDirName() string {
 	return p.directoryName
 }

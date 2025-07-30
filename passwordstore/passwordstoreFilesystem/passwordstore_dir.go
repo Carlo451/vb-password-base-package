@@ -12,6 +12,10 @@ type PasswordStoreDir struct {
 	directories   []Directory
 }
 
+func (dir *PasswordStoreDir) GetDirEntryPath() string {
+	return dir.directoryPath
+}
+
 func NewCleanPasswordStoreDir(headDir *PasswordStoreDir, entry os.DirEntry) *PasswordStoreDir {
 	return &PasswordStoreDir{
 		directoryName: entry.Name(),

@@ -122,3 +122,43 @@ func TestUpdateContentInContentDirWithNoCorrespondingContentFile(t *testing.T) {
 	}
 	teardown()
 }
+
+func TestRemoveDirectory(t *testing.T) {
+	setup()
+	api.AddContentDirectoryToStore(filepath.Join(basePath, storeName+"/extraContent/doubleextraContent"), basePath, storeName, "content", "password123", "password")
+	api.AddContentDirectoryToStore(filepath.Join(basePath, storeName+"/extraContent"), basePath, storeName, "content", "password123", "password")
+	check, _ := api.RemoveDirectory(filepath.Join(basePath, storeName+"/extraContent/content"), basePath, storeName, true)
+	if !check {
+		t.Errorf("Inserted content should have been inserted")
+	}
+	if !api.CheckIfDirectoryExists(filepath.Join(basePath, storeName+"/extraContent/doubleextraContent")) {
+		t.Errorf("removeSubdirs is true but in extraContent is still another dir so this should still exists")
+	}
+	teardown()
+}
+
+func TestRemoveDirectoryWithDeletionOfEmptySubDirs(t *testing.T) {
+	setup()
+	api.AddContentDirectoryToStore(filepath.Join(basePath, storeName+"/extraContent"), basePath, storeName, "content", "password123", "password")
+	check, _ := api.RemoveDirectory(filepath.Join(basePath, storeName+"/extraContent/content"), basePath, storeName, true)
+	if !check {
+		t.Errorf("Inserted content should have been inserted")
+	}
+	if api.CheckIfDirectoryExists(filepath.Join(basePath, storeName+"/extraContent")) {
+		t.Errorf("removeSubdirs is true and content was delted so this dir should be removed aswell")
+	}
+	teardown()
+}
+
+func TestRemoveDirectoryWithWithoutDeletionOfEmptySubDirs(t *testing.T) {
+	setup()
+	api.AddContentDirectoryToStore(filepath.Join(basePath, storeName+"/extraContent"), basePath, storeName, "content", "password123", "password")
+	check, _ := api.RemoveDirectory(filepath.Join(basePath, storeName+"/extraContent/content"), basePath, storeName, false)
+	if !check {
+		t.Errorf("Inserted content should have been inserted")
+	}
+	if !api.CheckIfDirectoryExists(filepath.Join(basePath, storeName+"/extraContent")) {
+		t.Errorf("removeSubdirs is false so even the the subDir is empty it should not be deleted")
+	}
+	teardown()
+}

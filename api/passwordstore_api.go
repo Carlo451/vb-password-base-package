@@ -15,10 +15,11 @@ func CreatePasswordStore(path, name, user, encryptionId string) passwordstoreFil
 }
 
 func ReadPasswordStore(path, name string) passwordstoreFilesystem.PasswordStoreDir {
-	var rootdir passwordstoreFilesystem.PasswordStoreDir = *CreateNotLoadedRootDir(path, name)
+	/*var rootdir passwordstoreFilesystem.PasswordStoreDir = *CreateNotLoadedRootDir(path, name)
 	rootdir.ReadDirectory()
+
+	return rootdir*/
 	return passwordstoreFilesystem.ReadDirDownFromPath(filepath.Join(path, name))
-	//return rootdir
 }
 
 // AddContentDirectoryToStore Adds a new Content directory with the given content and identifiers as well as the corresponding subdirectories in the path
@@ -94,22 +95,28 @@ func UpdateContentInContentDirectory(path, basePath, storeName, content, identif
 	return false, errors.New("the content directory in the Path does not exist")
 }
 
-/*func RemoveContentDirectory(path, basePath, storeName, content, identifier string) (bool, error) {
-	dirExists, err := CheckIfContentDirectoryExists(path)
-	if err != nil {
-		logger.ApiLogger.Error("the content directory does not exist")
-		return false, err
-	}
+func RemoveDirectory(path, basePath, storeName string, removeSubDirs bool) (bool, error) {
+	dirExists := CheckIfDirectoryExists(path)
 	if dirExists {
 		store := ReadPasswordStore(basePath, storeName)
 		parsedPath := pathparser.ParsePathWithContentDirectory(filepath.Join(basePath, storeName), path)
 		dir, exists, _ := checkIfSubDirPathExistsAndReturnLastSubDir(store, parsedPath.SubDirectories)
 		if exists {
-			return writeOrOverrideFileInContentDir(dir, parsedPath.ContentDirectory, content, identifier)
+			for _, contentDir := range dir.GetAllDirs() {
+				if contentDir.GetDirName() == parsedPath.ContentDirectory {
+					passwordstoreFilesystem.RemoveDirectory(contentDir)
+					if removeSubDirs {
+						updatedDir := passwordstoreFilesystem.ReadDirDownFromPath(dir.GetAbsoluteDirectoryPath())
+						removeEmptyDirsRecUpWards(updatedDir)
+					}
+					return true, nil
+				}
+			}
 		}
 	}
-	store := ReadPasswordStore(basePath, storeName)
-}*/
+	logger.ApiLogger.Error("the directory does not exist")
+	return false, nil
+}
 
 func CheckIfContentDirectoryExists(path string) (bool, error) {
 	entry, err := os.ReadDir(path)
@@ -126,7 +133,14 @@ func CheckIfContentDirectoryExists(path string) (bool, error) {
 	log.Default().Println("Seems like a empty directory exists, but is not a sub Directory -> it will get cleanedUp")
 	CleanUpContentDirectory(path)
 	return false, errors.New("the directory does not exist")
+}
 
+func CheckIfDirectoryExists(path string) bool {
+	_, err := os.ReadDir(path)
+	if err != nil {
+		return false
+	}
+	return true
 }
 
 func CleanUpContentDirectory(path string) error {
