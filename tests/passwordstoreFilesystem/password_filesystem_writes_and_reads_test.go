@@ -14,11 +14,13 @@ const (
 	storeName = "testStore"
 )
 
-func setup() {
+func setup() api.PasswordStoreHandler {
 	os.Mkdir(basePath, 0755)
 	os.Setenv("VB_PASSWORDSTORE_BASE_DIR", basePath)
 	path, _ := environment.LookUpAndGetEnvValue("VB_PASSWORDSTORE_BASE_DIR")
-	api.CreatePasswordStore(path, "testStore", "camo", "Id")
+	handler := api.NewPasswordStoreHandler(path)
+	handler.CreatePasswordStore("testStore", "camo", "Id")
+	return handler
 }
 func teardown() {
 	err := os.RemoveAll(basePath)
@@ -38,8 +40,8 @@ func TestCreatePasswordStore(t *testing.T) {
 }
 
 func TestAddContentDirInRootStore(t *testing.T) {
-	setup()
-	api.AddContentDirectoryToStore(filepath.Join(basePath, storeName), basePath, storeName, "content", "password123", "password")
+	handler := setup()
+	handler.AddContentDirectoryToStore(filepath.Join(basePath, storeName), storeName, "content", "password123", "password")
 	check := api.CheckIfContentFileExists(filepath.Join(basePath, storeName+"/content/password"))
 	if !check {
 		t.Error("Expected content file to exist")
@@ -48,8 +50,8 @@ func TestAddContentDirInRootStore(t *testing.T) {
 }
 
 func TestAddContentDirInRootStoreWitMultipleNonExistingSubDirs(t *testing.T) {
-	setup()
-	api.AddContentDirectoryToStore(filepath.Join(basePath, storeName+"/extraContent/doubleextraContent"), basePath, storeName, "content", "password123", "password")
+	handler := setup()
+	handler.AddContentDirectoryToStore(filepath.Join(basePath, storeName+"/extraContent/doubleextraContent"), storeName, "content", "password123", "password")
 	check := api.CheckIfContentFileExists(filepath.Join(basePath, storeName+"/extraContent/doubleextraContent/content/password"))
 	if !check {
 		t.Error("Expected content file to exist")
@@ -58,9 +60,9 @@ func TestAddContentDirInRootStoreWitMultipleNonExistingSubDirs(t *testing.T) {
 }
 
 func TestAddContentDirInRootStoreWitMultipleExistingSubDirs(t *testing.T) {
-	setup()
-	api.AddContentDirectoryToStore(filepath.Join(basePath, storeName+"/extraContent/doubleextraContent"), basePath, storeName, "content", "password123", "password")
-	api.AddContentDirectoryToStore(filepath.Join(basePath, storeName+"/extraContent"), basePath, storeName, "content", "password123", "password")
+	handler := setup()
+	handler.AddContentDirectoryToStore(filepath.Join(basePath, storeName+"/extraContent/doubleextraContent"), storeName, "content", "password123", "password")
+	handler.AddContentDirectoryToStore(filepath.Join(basePath, storeName+"/extraContent"), storeName, "content", "password123", "password")
 	check := api.CheckIfContentFileExists(filepath.Join(basePath, storeName+"/extraContent/content/password"))
 	if !check {
 		t.Error("Expected content file to exist")
@@ -69,10 +71,10 @@ func TestAddContentDirInRootStoreWitMultipleExistingSubDirs(t *testing.T) {
 }
 
 func TestInsertContentIntoContentDir(t *testing.T) {
-	setup()
-	api.AddContentDirectoryToStore(filepath.Join(basePath, storeName+"/extraContent/doubleextraContent"), basePath, storeName, "content", "password123", "password")
-	api.AddContentDirectoryToStore(filepath.Join(basePath, storeName+"/extraContent"), basePath, storeName, "content", "password123", "password")
-	check, _ := api.InsertContentInContentDirectory(filepath.Join(basePath, storeName+"/extraContent/content"), basePath, storeName, "camo123", "username")
+	handler := setup()
+	handler.AddContentDirectoryToStore(filepath.Join(basePath, storeName+"/extraContent/doubleextraContent"), storeName, "content", "password123", "password")
+	handler.AddContentDirectoryToStore(filepath.Join(basePath, storeName+"/extraContent"), storeName, "content", "password123", "password")
+	check, _ := handler.InsertContentInContentDirectory(filepath.Join(basePath, storeName+"/extraContent/content"), storeName, "camo123", "username")
 	if !check {
 		t.Errorf("Inserted content should have been inserted")
 	}
@@ -80,10 +82,10 @@ func TestInsertContentIntoContentDir(t *testing.T) {
 }
 
 func TestInsertContentWhenIdentifierIsAlreadyUsed(t *testing.T) {
-	setup()
-	api.AddContentDirectoryToStore(filepath.Join(basePath, storeName+"/extraContent/doubleextraContent"), basePath, storeName, "content", "password123", "password")
-	api.AddContentDirectoryToStore(filepath.Join(basePath, storeName+"/extraContent"), basePath, storeName, "content", "password123", "password")
-	_, err := api.InsertContentInContentDirectory(filepath.Join(basePath, storeName+"/extraContent/content"), basePath, storeName, "camo123", "password")
+	handler := setup()
+	handler.AddContentDirectoryToStore(filepath.Join(basePath, storeName+"/extraContent/doubleextraContent"), storeName, "content", "password123", "password")
+	handler.AddContentDirectoryToStore(filepath.Join(basePath, storeName+"/extraContent"), storeName, "content", "password123", "password")
+	_, err := handler.InsertContentInContentDirectory(filepath.Join(basePath, storeName+"/extraContent/content"), storeName, "camo123", "password")
 	if err == nil {
 		t.Errorf("This insertion should fail because identifier is already used")
 	}
@@ -91,10 +93,10 @@ func TestInsertContentWhenIdentifierIsAlreadyUsed(t *testing.T) {
 }
 
 func TestInsertContentWhenContentDirDoesNotExist(t *testing.T) {
-	setup()
-	api.AddContentDirectoryToStore(filepath.Join(basePath, storeName+"/extraContent/doubleextraContent"), basePath, storeName, "content", "password123", "password")
-	api.AddContentDirectoryToStore(filepath.Join(basePath, storeName+"/extraContent"), basePath, storeName, "content", "password123", "password")
-	_, err := api.InsertContentInContentDirectory(filepath.Join(basePath, storeName+"/extraContent/NotExistingCOntent"), basePath, storeName, "camo123", "password")
+	handler := setup()
+	handler.AddContentDirectoryToStore(filepath.Join(basePath, storeName+"/extraContent/doubleextraContent"), storeName, "content", "password123", "password")
+	handler.AddContentDirectoryToStore(filepath.Join(basePath, storeName+"/extraContent"), storeName, "content", "password123", "password")
+	_, err := handler.InsertContentInContentDirectory(filepath.Join(basePath, storeName+"/extraContent/NotExistingCOntent"), storeName, "camo123", "password")
 	if err == nil {
 		t.Errorf("This insertion should fail because the content directory does not exist")
 	}
@@ -102,10 +104,10 @@ func TestInsertContentWhenContentDirDoesNotExist(t *testing.T) {
 }
 
 func TestUpdateContentInContentDir(t *testing.T) {
-	setup()
-	api.AddContentDirectoryToStore(filepath.Join(basePath, storeName+"/extraContent/doubleextraContent"), basePath, storeName, "content", "password123", "password")
-	api.AddContentDirectoryToStore(filepath.Join(basePath, storeName+"/extraContent"), basePath, storeName, "content", "password123", "password")
-	check, _ := api.UpdateContentInContentDirectory(filepath.Join(basePath, storeName+"/extraContent/content"), basePath, storeName, "camo123", "password")
+	handler := setup()
+	handler.AddContentDirectoryToStore(filepath.Join(basePath, storeName+"/extraContent/doubleextraContent"), storeName, "content", "password123", "password")
+	handler.AddContentDirectoryToStore(filepath.Join(basePath, storeName+"/extraContent"), storeName, "content", "password123", "password")
+	check, _ := handler.UpdateContentInContentDirectory(filepath.Join(basePath, storeName+"/extraContent/content"), storeName, "camo123", "password")
 	if !check {
 		t.Errorf("Inserted content should have been inserted")
 	}
@@ -113,10 +115,10 @@ func TestUpdateContentInContentDir(t *testing.T) {
 }
 
 func TestUpdateContentInContentDirWithNoCorrespondingContentFile(t *testing.T) {
-	setup()
-	api.AddContentDirectoryToStore(filepath.Join(basePath, storeName+"/extraContent/doubleextraContent"), basePath, storeName, "content", "password123", "password")
-	api.AddContentDirectoryToStore(filepath.Join(basePath, storeName+"/extraContent"), basePath, storeName, "content", "password123", "password")
-	check, _ := api.UpdateContentInContentDirectory(filepath.Join(basePath, storeName+"/extraContent/content"), basePath, storeName, "password", "username")
+	handler := setup()
+	handler.AddContentDirectoryToStore(filepath.Join(basePath, storeName+"/extraContent/doubleextraContent"), storeName, "content", "password123", "password")
+	handler.AddContentDirectoryToStore(filepath.Join(basePath, storeName+"/extraContent"), storeName, "content", "password123", "password")
+	check, _ := handler.UpdateContentInContentDirectory(filepath.Join(basePath, storeName+"/extraContent/content"), storeName, "password", "username")
 	if !check {
 		t.Errorf("Inserted content should have been inserted")
 	}
@@ -124,10 +126,10 @@ func TestUpdateContentInContentDirWithNoCorrespondingContentFile(t *testing.T) {
 }
 
 func TestRemoveDirectory(t *testing.T) {
-	setup()
-	api.AddContentDirectoryToStore(filepath.Join(basePath, storeName+"/extraContent/doubleextraContent"), basePath, storeName, "content", "password123", "password")
-	api.AddContentDirectoryToStore(filepath.Join(basePath, storeName+"/extraContent"), basePath, storeName, "content", "password123", "password")
-	check, _ := api.RemoveDirectory(filepath.Join(basePath, storeName+"/extraContent/content"), basePath, storeName, true)
+	handler := setup()
+	handler.AddContentDirectoryToStore(filepath.Join(basePath, storeName+"/extraContent/doubleextraContent"), storeName, "content", "password123", "password")
+	handler.AddContentDirectoryToStore(filepath.Join(basePath, storeName+"/extraContent"), storeName, "content", "password123", "password")
+	check, _ := handler.RemoveDirectory(filepath.Join(basePath, storeName+"/extraContent/content"), storeName, true)
 	if !check {
 		t.Errorf("Inserted content should have been inserted")
 	}
@@ -138,9 +140,9 @@ func TestRemoveDirectory(t *testing.T) {
 }
 
 func TestRemoveDirectoryWithDeletionOfEmptySubDirs(t *testing.T) {
-	setup()
-	api.AddContentDirectoryToStore(filepath.Join(basePath, storeName+"/extraContent"), basePath, storeName, "content", "password123", "password")
-	check, _ := api.RemoveDirectory(filepath.Join(basePath, storeName+"/extraContent/content"), basePath, storeName, true)
+	handler := setup()
+	handler.AddContentDirectoryToStore(filepath.Join(basePath, storeName+"/extraContent"), storeName, "content", "password123", "password")
+	check, _ := handler.RemoveDirectory(filepath.Join(basePath, storeName+"/extraContent/content"), storeName, true)
 	if !check {
 		t.Errorf("Inserted content should have been inserted")
 	}
@@ -151,9 +153,9 @@ func TestRemoveDirectoryWithDeletionOfEmptySubDirs(t *testing.T) {
 }
 
 func TestRemoveDirectoryWithWithoutDeletionOfEmptySubDirs(t *testing.T) {
-	setup()
-	api.AddContentDirectoryToStore(filepath.Join(basePath, storeName+"/extraContent"), basePath, storeName, "content", "password123", "password")
-	check, _ := api.RemoveDirectory(filepath.Join(basePath, storeName+"/extraContent/content"), basePath, storeName, false)
+	handler := setup()
+	handler.AddContentDirectoryToStore(filepath.Join(basePath, storeName+"/extraContent"), storeName, "content", "password123", "password")
+	check, _ := handler.RemoveDirectory(filepath.Join(basePath, storeName+"/extraContent/content"), storeName, false)
 	if !check {
 		t.Errorf("Inserted content should have been inserted")
 	}
