@@ -16,12 +16,6 @@ func WriteFileContents(file File) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	/*err := os.WriteFile(file.GetAbsolutePath(), []byte(file.GetContent()), 0644)
-	if err != nil {
-		log.Fatal(err)
-	} else {
-		log.Default().Println("File: " + file.GetAbsolutePath() + " written successfully")
-	}*/
 }
 
 func WriteDirectory(dir Directory) {

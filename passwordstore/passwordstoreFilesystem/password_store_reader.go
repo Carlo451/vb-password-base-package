@@ -40,8 +40,6 @@ func ReadDir(dir Directory) Directory {
 	for _, entry := range entrys {
 		if entry.IsDir() {
 			dir.ReadDirectoryRec(entry)
-		} else {
-
 		}
 	}
 	return dir

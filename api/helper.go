@@ -2,12 +2,35 @@ package api
 
 import (
 	"errors"
+	"time"
 	"vb-password-store-base/passwordstore/passwordstoreFilesystem"
 )
 
-func CreateRootDir(path, name, owner, encryptionId string) passwordstoreFilesystem.PasswordStoreDir {
+// createConfigDirWithFiles creates the config directory with given params
+func createConfigDirWithFiles(parentDir *passwordstoreFilesystem.PasswordStoreDir, owner, encryptionId string) passwordstoreFilesystem.PasswordStoreDir {
+	configDir := parentDir.AddEmpytContentDir("configs")
+	ownerFile := passwordstoreFilesystem.NewPasswordstoreContentFile(owner, "owner", *configDir)
+	encryptionIdFile := passwordstoreFilesystem.NewPasswordstoreContentFile(encryptionId, "enryptionId", *configDir)
+	lastEditedFile := passwordstoreFilesystem.NewPasswordstoreContentFile(time.Now().String(), "lastEdited", *configDir)
+	configDir.AppendFiles(ownerFile, encryptionIdFile, lastEditedFile)
+	return *parentDir
+}
+
+// createRootDir creates a new root directory (like a new vault) a base directory with all relevant configs
+func createRootDir(path, name, owner, encryptionId string) passwordstoreFilesystem.PasswordStoreDir {
 	rootDir := passwordstoreFilesystem.CreateNewEmptyStoreDir(name, path)
-	rootDir.CreateConfigDirWithFiles(owner, encryptionId)
+	createConfigDirWithFiles(&rootDir, owner, encryptionId)
+	rootDir.WriteDirectory()
+	return rootDir
+}
+
+// createCustomRootDir creates a new root directory (like a new vault) a base directory with custom configs
+func createCustomRootDir(path, name string, configs []passwordstoreFilesystem.PasswordStoreContentFile) passwordstoreFilesystem.PasswordStoreDir {
+	rootDir := passwordstoreFilesystem.CreateNewEmptyStoreDir(name, path)
+	contentDir := rootDir.AddEmpytContentDir("configs")
+	for _, config := range configs {
+		contentDir.AppendFile(&config)
+	}
 	rootDir.WriteDirectory()
 	return rootDir
 }
@@ -17,10 +40,11 @@ func CreateNotLoadedRootDir(path, name string) *passwordstoreFilesystem.Password
 	return &rootDir
 }
 
+// checkIfSubDirPathExistsAndReturnLastSubDir
 // runs through the directories and checks if all subdirectories already exists
 // returns the last existing subdirectory on the path
 // returns if all subdirectories exist
-// returns the remaning subdirectories, which are not existing yet
+// returns the remaining subdirectories, which are not existing yet
 func checkIfSubDirPathExistsAndReturnLastSubDir(dir passwordstoreFilesystem.PasswordStoreDir, orderedSubDirList []string) (passwordstoreFilesystem.PasswordStoreDir, bool, []string) {
 	if len(orderedSubDirList) == 0 {
 		return dir, true, orderedSubDirList
@@ -33,31 +57,34 @@ func checkIfSubDirPathExistsAndReturnLastSubDir(dir passwordstoreFilesystem.Pass
 			dirList := orderedSubDirList[1:]
 			return checkIfSubDirPathExistsAndReturnLastSubDir(directory, dirList)
 		}
-
 	}
 	return dir, false, orderedSubDirList
 }
 
-// runs recursive through a list of subdir strings and creates plus write this into the filesystem
+// createSubDirectoriesRek runs recursively down the given sub directories and creates each one
+// dir - the directory in which the sub directory should be created
+// subdirs - a ordered list of sub dirs which are given down recursively only the first ohne of the list is taken
 // returns the last created subDir
 func createSubDirectoriesRek(dir passwordstoreFilesystem.PasswordStoreDir, subdirs []string) passwordstoreFilesystem.PasswordStoreDir {
 	if len(subdirs) == 0 {
 		return dir
 	}
 	var newSubDir = passwordstoreFilesystem.CreateNewEmptyStoreDir(subdirs[0], dir.GetAbsoluteDirectoryPath())
-	dir.AddSubDirectory(newSubDir)
+	dir.AddDirectory(&newSubDir)
 	dir.WriteDirectory()
 	dirList := subdirs[1:]
 	return createSubDirectoriesRek(newSubDir, dirList)
 }
 
+// addAndWriteContentToContentDirectory - appends one new file with the given identifier(fileName) and the content and later saves it to the filesystem
 func addAndWriteContentToContentDirectory(content, identifier string, contentDir passwordstoreFilesystem.PasswordStoreContentDir) {
 	file := passwordstoreFilesystem.NewPasswordstoreContentFile(content, identifier, contentDir)
 	contentDir.AppendFile(file)
 	contentDir.WriteDirectory()
 }
 
-func writeOrOverrideFileInContentDir(dir passwordstoreFilesystem.PasswordStoreDir, contentDirName, content, identifier string) (bool, error) {
+// writeOrOvewriteFileInContentDir - takes the lastSubDir searches for the correct content dir and overwrites the contentfile or writes the content file
+func writeOrOvewriteFileInContentDir(dir passwordstoreFilesystem.PasswordStoreDir, contentDirName, content, identifier string) (bool, error) {
 	contentDirs := dir.GetContentDirectories()
 	for _, contentDir := range contentDirs {
 		if contentDir.GetDirName() == contentDirName {
@@ -68,6 +95,7 @@ func writeOrOverrideFileInContentDir(dir passwordstoreFilesystem.PasswordStoreDi
 	return false, errors.New("content directory not found")
 }
 
+// removeEmptyDirsRecUpWards removes empty directories the tree up
 func removeEmptyDirsRecUpWards(lastSubDir passwordstoreFilesystem.PasswordStoreDir) {
 	if len(lastSubDir.GetAllDirs()) == 0 {
 		passwordstoreFilesystem.RemoveDirectory(&lastSubDir)

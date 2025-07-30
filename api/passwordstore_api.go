@@ -11,14 +11,14 @@ import (
 )
 
 func CreatePasswordStore(path, name, user, encryptionId string) passwordstoreFilesystem.PasswordStoreDir {
-	return CreateRootDir(path, name, user, encryptionId)
+	return createRootDir(path, name, user, encryptionId)
+}
+
+func CreateCustomPasswordStore(path, name string, configs []passwordstoreFilesystem.PasswordStoreContentFile) passwordstoreFilesystem.PasswordStoreDir {
+	return createCustomRootDir(path, name, configs)
 }
 
 func ReadPasswordStore(path, name string) passwordstoreFilesystem.PasswordStoreDir {
-	/*var rootdir passwordstoreFilesystem.PasswordStoreDir = *CreateNotLoadedRootDir(path, name)
-	rootdir.ReadDirectory()
-
-	return rootdir*/
 	return passwordstoreFilesystem.ReadDirDownFromPath(filepath.Join(path, name))
 }
 
@@ -62,7 +62,7 @@ func InsertContentInContentDirectory(path, basePath, storeName, content, identif
 		parsedPath := pathparser.ParsePathWithContentDirectory(filepath.Join(basePath, storeName), path)
 		dir, exists, _ := checkIfSubDirPathExistsAndReturnLastSubDir(store, parsedPath.SubDirectories)
 		if exists {
-			return writeOrOverrideFileInContentDir(dir, parsedPath.ContentDirectory, content, identifier)
+			return writeOrOvewriteFileInContentDir(dir, parsedPath.ContentDirectory, content, identifier)
 		}
 	}
 	return false, errors.New("the content directory in the Path does not exist")
@@ -89,7 +89,7 @@ func UpdateContentInContentDirectory(path, basePath, storeName, content, identif
 		parsedPath := pathparser.ParsePathWithContentDirectory(filepath.Join(basePath, storeName), path)
 		dir, exists, _ := checkIfSubDirPathExistsAndReturnLastSubDir(store, parsedPath.SubDirectories)
 		if exists {
-			return writeOrOverrideFileInContentDir(dir, parsedPath.ContentDirectory, content, identifier)
+			return writeOrOvewriteFileInContentDir(dir, parsedPath.ContentDirectory, content, identifier)
 		}
 	}
 	return false, errors.New("the content directory in the Path does not exist")

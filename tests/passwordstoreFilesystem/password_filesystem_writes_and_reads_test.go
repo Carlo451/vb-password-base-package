@@ -29,7 +29,7 @@ func teardown() {
 
 func TestCreatePasswordStore(t *testing.T) {
 	setup()
-	_, err := os.ReadDir(filepath.Join(basePath, storeName))
+	_, err := os.ReadDir(filepath.Join(basePath, storeName+"/configs"))
 	if err != nil {
 		log.Fatal(err)
 		t.Error("Expected Password Store to be created")
