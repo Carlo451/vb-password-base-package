@@ -10,6 +10,22 @@ type ParsedPath struct {
 	ContentDirectory string
 }
 
+func (p *ParsedPath) BuildPathWithoutContentDir() string {
+	path := ""
+	for _, subDir := range p.SubDirectories {
+		path += subDir + "/"
+	}
+	return strings.TrimRight(path, "/")
+}
+
+func (p *ParsedPath) BuildPathCompletePath() string {
+	path := ""
+	for _, subDir := range p.SubDirectories {
+		path += subDir + "/"
+	}
+	return path + p.ContentDirectory
+}
+
 func ParsePathWithContentDirectory(storePath, path string) ParsedPath {
 	_, err := os.ReadDir(storePath)
 	if err != nil {
