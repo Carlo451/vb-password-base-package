@@ -1,9 +1,9 @@
 package environment
 
 import (
+	"github.com/Carlo451/vb-password-base-package/environment"
 	"os"
 	"testing"
-	"vb-password-store-base/environment"
 )
 
 func TestSimpleOsEnvironmentVar(t *testing.T) {

@@ -2,8 +2,8 @@ package keygenerator
 
 import (
 	"fmt"
+	"github.com/Carlo451/vb-password-base-package/cryptography/keys"
 	"log"
-	"vb-password-store-base/cryptography/keys"
 
 	"filippo.io/age"
 )

@@ -1,12 +1,12 @@
 package passwordstoreFilesystem
 
 import (
+	"github.com/Carlo451/vb-password-base-package/api"
+	"github.com/Carlo451/vb-password-base-package/environment"
 	"log"
 	"os"
 	"path/filepath"
 	"testing"
-	"vb-password-store-base/api"
-	"vb-password-store-base/environment"
 )
 
 const (

@@ -2,8 +2,8 @@ package api
 
 import (
 	"errors"
+	"github.com/Carlo451/vb-password-base-package/passwordstore/passwordstoreFilesystem"
 	"time"
-	"vb-password-store-base/passwordstore/passwordstoreFilesystem"
 )
 
 // createConfigDirWithFiles creates the config directory with given params

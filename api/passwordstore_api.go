@@ -2,10 +2,10 @@ package api
 
 import (
 	"errors"
+	"github.com/Carlo451/vb-password-base-package/logger"
+	"github.com/Carlo451/vb-password-base-package/passwordstore/passwordstoreFilesystem"
+	"github.com/Carlo451/vb-password-base-package/pathparser"
 	"path/filepath"
-	"vb-password-store-base/logger"
-	"vb-password-store-base/passwordstore/passwordstoreFilesystem"
-	"vb-password-store-base/pathparser"
 )
 
 type PasswordStoreHandler struct {

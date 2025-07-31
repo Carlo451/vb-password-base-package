@@ -2,9 +2,9 @@ package keygentests
 
 import (
 	"fmt"
+	"github.com/Carlo451/vb-password-base-package/cryptography/keygenerator"
+	"github.com/Carlo451/vb-password-base-package/cryptography/keys"
 	"testing"
-	"vb-password-store-base/cryptography/keygenerator"
-	"vb-password-store-base/cryptography/keys"
 )
 
 func TestGenerateKeyPair(t *testing.T) {

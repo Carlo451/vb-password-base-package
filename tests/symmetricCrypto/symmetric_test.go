@@ -1,9 +1,9 @@
 package symmetricCrypto
 
 import (
+	"github.com/Carlo451/vb-password-base-package/cryptography/cryptographyoperations"
+	"github.com/Carlo451/vb-password-base-package/cryptography/keygenerator"
 	"testing"
-	"vb-password-store-base/cryptography/cryptographyoperations"
-	"vb-password-store-base/cryptography/keygenerator"
 )
 
 func TestSymmetricEnAndDecryption(t *testing.T) {

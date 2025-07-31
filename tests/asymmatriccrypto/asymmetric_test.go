@@ -1,10 +1,10 @@
 package asymmatriccrypto
 
 import (
+	"github.com/Carlo451/vb-password-base-package/cryptography/cryptographyoperations"
+	"github.com/Carlo451/vb-password-base-package/cryptography/keygenerator"
+	"github.com/Carlo451/vb-password-base-package/cryptography/keys"
 	"testing"
-	"vb-password-store-base/cryptography/cryptographyoperations"
-	"vb-password-store-base/cryptography/keygenerator"
-	"vb-password-store-base/cryptography/keys"
 )
 
 func TestAsymmetricEnAndDecryption(t *testing.T) {

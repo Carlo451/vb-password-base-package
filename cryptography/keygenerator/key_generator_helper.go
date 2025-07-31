@@ -2,9 +2,9 @@ package keygenerator
 
 import (
 	"crypto/rand"
+	"github.com/Carlo451/vb-password-base-package/cryptography/cryptographyconsts"
 	"math/big"
 	"strings"
-	"vb-password-store-base/cryptography/cryptographyconsts"
 )
 
 // generates a random key string with specific length
