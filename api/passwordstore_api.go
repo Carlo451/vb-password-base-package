@@ -12,6 +12,10 @@ type PasswordStoreHandler struct {
 	path string
 }
 
+func (h *PasswordStoreHandler) GetPath() string {
+	return h.path
+}
+
 func (h *PasswordStoreHandler) CreatePasswordStore(name, user, encryptionId string) passwordstoreFilesystem.PasswordStoreDir {
 	return createRootDir(h.path, name, user, encryptionId)
 }
