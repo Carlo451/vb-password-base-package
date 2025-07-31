@@ -164,3 +164,21 @@ func TestRemoveDirectoryWithWithoutDeletionOfEmptySubDirs(t *testing.T) {
 	}
 	teardown()
 }
+
+func TestReadContentDir(t *testing.T) {
+	handler := setup()
+	handler.AddContentDirectoryToStore(filepath.Join(basePath, storeName+"/extraContent"), storeName, "content", "password123", "password")
+	contentDir, err := handler.ReadContentDir(filepath.Join(basePath, storeName+"/extraContent/content"), storeName)
+	if err != nil {
+		t.Errorf("COntentDirectory should not return an error")
+	}
+	for _, file := range contentDir.ReturnFiles() {
+		if file.GetFileName() == "password" {
+			password := file.GetContent()
+			if password != "password123\n" {
+				t.Errorf("Something went wrong")
+			}
+		}
+	}
+	teardown()
+}

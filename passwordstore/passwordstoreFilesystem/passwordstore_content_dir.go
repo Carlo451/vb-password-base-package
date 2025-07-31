@@ -84,6 +84,11 @@ func (p *PasswordStoreContentDir) RemoveFile(f File) {
 	}
 }
 
+// ReturnFiles returns the files of the directory
+func (p *PasswordStoreContentDir) ReturnFiles() []File {
+	return p.contents
+}
+
 // NewCleanContentDirectory creates a new ContentDirectory with the parent dir and the corresponding filesystem entry
 func NewCleanContentDirectory(dir Directory, entry os.DirEntry) *PasswordStoreContentDir {
 	return &PasswordStoreContentDir{

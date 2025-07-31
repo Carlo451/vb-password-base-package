@@ -119,3 +119,23 @@ func (h *PasswordStoreHandler) RemoveDirectory(path, storeName string, removeSub
 	logger.ApiLogger.Error("the directory does not exist")
 	return false, nil
 }
+
+func (h *PasswordStoreHandler) ReadContentDir(path, storeName string) (*passwordstoreFilesystem.PasswordStoreContentDir, error) {
+	dirExists, err := CheckIfContentDirectoryExists(path)
+	if err != nil {
+		return nil, err
+	}
+	if dirExists {
+		store := h.ReadPasswordStore(storeName)
+		parsedPath := pathparser.ParsePathWithContentDirectory(filepath.Join(h.path, storeName), path)
+		dir, exists, _ := checkIfSubDirPathExistsAndReturnLastSubDir(store, parsedPath.SubDirectories)
+		if exists {
+			for _, contentDir := range dir.GetContentDirectories() {
+				if contentDir.GetDirName() == parsedPath.ContentDirectory {
+					return &contentDir, nil
+				}
+			}
+		}
+	}
+	return nil, errors.New("the content directory in the Path does not exist")
+}
