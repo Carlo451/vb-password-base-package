@@ -6,7 +6,7 @@ import (
 )
 
 func WriteFileContents(file File) {
-	file.SetContent(file.GetContent() + "\n")
+	file.SetContent(file.GetContent())
 	f, err := os.OpenFile(file.GetAbsolutePath(), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
 		log.Fatal(err)
