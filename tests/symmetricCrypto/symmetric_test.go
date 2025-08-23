@@ -2,12 +2,13 @@ package symmetricCrypto
 
 import (
 	"github.com/Carlo451/vb-password-base-package/cryptography/cryptographyoperations"
-	"github.com/Carlo451/vb-password-base-package/cryptography/keygenerator"
+	"github.com/Carlo451/vb-password-base-package/cryptography/keys"
+
 	"testing"
 )
 
 func TestSymmetricEnAndDecryption(t *testing.T) {
-	key, err := keygenerator.GenerateSymmetricKey()
+	key, err := keys.GenerateSymmetricKey()
 	if err != nil {
 		t.Errorf("SymmetricEnAndDecryption failed with error %s", err)
 	}

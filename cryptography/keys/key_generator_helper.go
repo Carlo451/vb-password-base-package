@@ -1,10 +1,11 @@
-package keygenerator
+package keys
 
 import (
 	"crypto/rand"
-	"github.com/Carlo451/vb-password-base-package/cryptography/cryptographyconsts"
 	"math/big"
 	"strings"
+
+	"github.com/Carlo451/vb-password-base-package/cryptography/cryptographyconsts"
 )
 
 // generates a random key string with specific length

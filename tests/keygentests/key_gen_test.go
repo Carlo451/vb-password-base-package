@@ -2,20 +2,20 @@ package keygentests
 
 import (
 	"fmt"
-	"github.com/Carlo451/vb-password-base-package/cryptography/keygenerator"
-	"github.com/Carlo451/vb-password-base-package/cryptography/keys"
 	"testing"
+
+	"github.com/Carlo451/vb-password-base-package/cryptography/keys"
 )
 
 func TestGenerateKeyPair(t *testing.T) {
-	var keyPair keys.AsymmetricKeyPair = keygenerator.GenerateAsymmetricKey()
+	var keyPair keys.AsymmetricKeyPair = keys.GenerateAsymmetricKey()
 	if keyPair.PublicKey == "" {
 		t.Errorf("public key not generated")
 	}
 }
 
 func TestGenerateSymmetricKeyStandard(t *testing.T) {
-	keyPoint, err := keygenerator.GenerateSymmetricKey()
+	keyPoint, err := keys.GenerateSymmetricKey()
 	if err != nil {
 		t.Error(err)
 	}
@@ -27,7 +27,7 @@ func TestGenerateSymmetricKeyStandard(t *testing.T) {
 }
 
 func TestGenerateSymmetricKeyFormatted(t *testing.T) {
-	keyPoint, err := keygenerator.GenerateFormattedSymmetricKeyWithLength(20, 5)
+	keyPoint, err := keys.GenerateFormattedSymmetricKeyWithLength(20, 5)
 	if err != nil {
 		t.Error(err)
 	}
@@ -37,7 +37,7 @@ func TestGenerateSymmetricKeyFormatted(t *testing.T) {
 }
 
 func TestGenerateSymmetricKeyFormattedWrongGroupSize(t *testing.T) {
-	keyPoint, err := keygenerator.GenerateFormattedSymmetricKeyWithLength(20, 3)
+	keyPoint, err := keys.GenerateFormattedSymmetricKeyWithLength(20, 3)
 	if err == nil {
 		t.Error(err)
 	}

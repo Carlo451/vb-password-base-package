@@ -1,44 +1,54 @@
-package keygenerator
+package keys
 
 import (
 	"fmt"
-	"github.com/Carlo451/vb-password-base-package/cryptography/keys"
 	"log"
 
 	"filippo.io/age"
 )
 
 // GenerateAsymmetricKey Generates a KeyPair
-func GenerateAsymmetricKey() keys.AsymmetricKeyPair {
+func GenerateAsymmetricKey() AsymmetricKeyPair {
 	privateKey, err := age.GenerateX25519Identity()
 	if err != nil {
 		log.Fatal(err)
 	}
 	publicKey := privateKey.Recipient()
-	return keys.NewAsymmetricKeyPair(publicKey.String(), privateKey.String())
+	return NewAsymmetricKeyPair(publicKey.String(), privateKey.String())
+}
+
+// GenerateNewKeyPairFromPrivateKey generate a new public key from private key (perhaps to compare public keys and check if private key fits t)
+func GenerateNewKeyPairFromPrivateKey(privateKey string) (*AsymmetricKeyPair, error) {
+	key, err := age.ParseX25519Identity(privateKey)
+	if err != nil {
+		return nil, err
+	}
+	pubKey := key.Recipient().String()
+	keyPair := NewAsymmetricKeyPair(pubKey, privateKey)
+	return &keyPair, nil
 }
 
 // GenerateSymmetricKey Generates a simple standard long key
-func GenerateSymmetricKey() (*keys.SymmetricKey, error) {
+func GenerateSymmetricKey() (*SymmetricKey, error) {
 	return GenerateSymmetricKeyWithSpecialLength(30)
 }
 
 // GenerateSymmetricKeyWithSpecialLength Generates a simple key where the user can specify the length of the key
-func GenerateSymmetricKeyWithSpecialLength(length int) (*keys.SymmetricKey, error) {
+func GenerateSymmetricKeyWithSpecialLength(length int) (*SymmetricKey, error) {
 	if length < 8 {
 		return nil, fmt.Errorf("the password length is too small, the password must be at least 8 characters")
 	}
 	var password, _ = generatesRandomKeyString(length)
-	return keys.NewSymmetricKey(password), nil
+	return NewSymmetricKey(password), nil
 }
 
 // GenerateFormattedStandardKey Generates a simple standard long formatted key with standard size char groups
-func GenerateFormattedStandardKey() (*keys.SymmetricKey, error) {
+func GenerateFormattedStandardKey() (*SymmetricKey, error) {
 	return GenerateFormattedSymmetricKeyWithLength(20, 5)
 }
 
 // GenerateFormattedSymmetricKeyWithLength Generates a key with a specific length and specific length of format char groups. Mind that in order to work the group length must be a divider of the length
-func GenerateFormattedSymmetricKeyWithLength(length, groupLength int) (*keys.SymmetricKey, error) {
+func GenerateFormattedSymmetricKeyWithLength(length, groupLength int) (*SymmetricKey, error) {
 	if (length%groupLength != 0) || length < groupLength*2 || length%groupLength != 0 {
 		return nil, fmt.Errorf("the password length must be at least double the group length long. And can be split up in char groups of %b", groupLength)
 	}
@@ -60,5 +70,5 @@ func GenerateFormattedSymmetricKeyWithLength(length, groupLength int) (*keys.Sym
 		}
 		newFormattedPassword += string(password[i])
 	}
-	return keys.NewSymmetricKey(newFormattedPassword), nil
+	return NewSymmetricKey(newFormattedPassword), nil
 }

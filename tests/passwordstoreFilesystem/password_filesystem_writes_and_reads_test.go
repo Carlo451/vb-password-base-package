@@ -1,12 +1,13 @@
 package passwordstoreFilesystem
 
 import (
-	"github.com/Carlo451/vb-password-base-package/api"
-	"github.com/Carlo451/vb-password-base-package/environment"
 	"log"
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/Carlo451/vb-password-base-package/api"
+	"github.com/Carlo451/vb-password-base-package/environment"
 )
 
 const (
@@ -175,7 +176,7 @@ func TestReadContentDir(t *testing.T) {
 	for _, file := range contentDir.ReturnFiles() {
 		if file.GetFileName() == "password" {
 			password := file.GetContent()
-			if password != "password123\n" {
+			if password != "password123" {
 				t.Errorf("Something went wrong")
 			}
 		}
