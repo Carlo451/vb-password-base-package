@@ -2,6 +2,8 @@ package api
 
 import (
 	"errors"
+	"path/filepath"
+	"strings"
 
 	"github.com/Carlo451/vb-password-base-package/passwordstoreFilesystem"
 
@@ -35,11 +37,6 @@ func createCustomRootDir(path, name string, configs []passwordstoreFilesystem.Pa
 	}
 	rootDir.WriteDirectory()
 	return rootDir
-}
-
-func CreateNotLoadedRootDir(path, name string) *passwordstoreFilesystem.PasswordStoreDir {
-	rootDir := passwordstoreFilesystem.CreateNewEmptyStoreDir(name, path)
-	return &rootDir
 }
 
 // checkIfSubDirPathExistsAndReturnLastSubDir
@@ -85,8 +82,8 @@ func addAndWriteContentToContentDirectory(content, identifier string, contentDir
 	contentDir.WriteDirectory()
 }
 
-// writeOrOvewriteFileInContentDir - takes the lastSubDir searches for the correct content dir and overwrites the contentfile or writes the content file
-func writeOrOvewriteFileInContentDir(dir passwordstoreFilesystem.PasswordStoreDir, contentDirName, content, identifier string) (bool, error) {
+// writeOrOverwriteFileInContentDir - takes the lastSubDir searches for the correct content dir and overwrites the contentfile or writes the content file
+func writeOrOverwriteFileInContentDir(dir passwordstoreFilesystem.PasswordStoreDir, contentDirName, content, identifier string) (bool, error) {
 	contentDirs := dir.GetContentDirectories()
 	for _, contentDir := range contentDirs {
 		if contentDir.GetDirName() == contentDirName {
@@ -106,4 +103,30 @@ func removeEmptyDirsRecUpWards(lastSubDir passwordstoreFilesystem.PasswordStoreD
 	} else {
 		return
 	}
+}
+
+func (h *PasswordStoreHandler) combineRelativePathWithBasePath(relativePath ...string) string {
+	removedBasePathOfArgs := []string{h.path}
+
+	// removes the base part if this exists (everything to the base directory)
+	for _, arg := range relativePath {
+		if strings.Contains(arg, h.path) {
+			_, editedArg, _ := strings.Cut(arg, h.path)
+			removedBasePathOfArgs = append(removedBasePathOfArgs, editedArg)
+
+		} else {
+			removedBasePathOfArgs = append(removedBasePathOfArgs, arg)
+		}
+	}
+
+	lastString := removedBasePathOfArgs[len(removedBasePathOfArgs)-1]
+	for i := len(removedBasePathOfArgs) - 2; i >= 0; i-- {
+		if strings.Contains(lastString, removedBasePathOfArgs[i]) {
+			_, editedArg, _ := strings.Cut(lastString, removedBasePathOfArgs[i])
+			removedBasePathOfArgs[i+1] = editedArg
+			lastString = removedBasePathOfArgs[i]
+		}
+	}
+
+	return filepath.Join(removedBasePathOfArgs...)
 }

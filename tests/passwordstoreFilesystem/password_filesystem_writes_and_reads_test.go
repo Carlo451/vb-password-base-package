@@ -42,7 +42,7 @@ func TestCreatePasswordStore(t *testing.T) {
 
 func TestAddContentDirInRootStore(t *testing.T) {
 	handler := setup()
-	handler.AddContentDirectoryToStore(filepath.Join(basePath, storeName), storeName, "content", "password123", "password")
+	handler.AddContentDirectoryToStore("", storeName, "content", "password123", "password")
 	check := api.CheckIfContentFileExists(filepath.Join(basePath, storeName+"/content/password"))
 	if !check {
 		t.Error("Expected content file to exist")
@@ -52,7 +52,7 @@ func TestAddContentDirInRootStore(t *testing.T) {
 
 func TestAddContentDirInRootStoreWitMultipleNonExistingSubDirs(t *testing.T) {
 	handler := setup()
-	handler.AddContentDirectoryToStore(filepath.Join(basePath, storeName+"/extraContent/doubleextraContent"), storeName, "content", "password123", "password")
+	handler.AddContentDirectoryToStore("/extraContent/doubleextraContent", storeName, "content", "password123", "password")
 	check := api.CheckIfContentFileExists(filepath.Join(basePath, storeName+"/extraContent/doubleextraContent/content/password"))
 	if !check {
 		t.Error("Expected content file to exist")
@@ -62,8 +62,8 @@ func TestAddContentDirInRootStoreWitMultipleNonExistingSubDirs(t *testing.T) {
 
 func TestAddContentDirInRootStoreWitMultipleExistingSubDirs(t *testing.T) {
 	handler := setup()
-	handler.AddContentDirectoryToStore(filepath.Join(basePath, storeName+"/extraContent/doubleextraContent"), storeName, "content", "password123", "password")
-	handler.AddContentDirectoryToStore(filepath.Join(basePath, storeName+"/extraContent"), storeName, "content", "password123", "password")
+	handler.AddContentDirectoryToStore("/extraContent/doubleextraContent", storeName, "content", "password123", "password")
+	handler.AddContentDirectoryToStore("/extraContent", storeName, "content", "password123", "password")
 	check := api.CheckIfContentFileExists(filepath.Join(basePath, storeName+"/extraContent/content/password"))
 	if !check {
 		t.Error("Expected content file to exist")
@@ -180,6 +180,30 @@ func TestReadContentDir(t *testing.T) {
 				t.Errorf("Something went wrong")
 			}
 		}
+	}
+	teardown()
+}
+
+func TestContentDirectoryMoveToAnotherDirectory(t *testing.T) {
+	handler := setup()
+	handler.AddContentDirectoryToStore("/extraContent/Subdir/youtube/personal", storeName, "content", "password123", "password")
+	handler.MoveDirectory("/extraContent/Subdir/youtube/personal/content", storeName, "/extraContent/movedContent")
+	contentDir, err := handler.ReadContentDir("/extraContent/movedContent/content", storeName)
+	if err != nil {
+		t.Errorf("ContentDirectory should not return an error")
+	}
+	for _, file := range contentDir.ReturnFiles() {
+		if file.GetFileName() == "password" {
+			password := file.GetContent()
+			if password != "password123" {
+				t.Errorf("Something went wrong")
+			}
+		}
+	}
+	// empty subdirs should be deleted
+	_, errEmptyDir := os.Stat(filepath.Join(basePath, storeName+"/extraContent/Subdir/"))
+	if errEmptyDir == nil {
+		t.Errorf("dir should not exist anymore")
 	}
 	teardown()
 }

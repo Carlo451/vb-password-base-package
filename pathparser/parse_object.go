@@ -27,14 +27,18 @@ func (p *ParsedPath) BuildPathCompletePath() string {
 }
 
 func ParsePathWithContentDirectory(storePath, path string) ParsedPath {
+	allDirectories := GetAllSubDirsOrdered(storePath, path)
+	allDirectories = allDirectories[1:]
+	contentDir := allDirectories[len(allDirectories)-1]
+	subDirectories := allDirectories[:len(allDirectories)-1]
+	return ParsedPath{subDirectories, contentDir}
+}
+
+func GetAllSubDirsOrdered(storePath, path string) []string {
 	_, err := os.ReadDir(storePath)
 	if err != nil {
 		panic("Store does not exist")
 	}
 	dirSubPath, _ := strings.CutPrefix(path, storePath)
-	allDirectories := strings.Split(dirSubPath, "/")
-	allDirectories = allDirectories[1:]
-	contentDir := allDirectories[len(allDirectories)-1]
-	subDirectories := allDirectories[:len(allDirectories)-1]
-	return ParsedPath{subDirectories, contentDir}
+	return strings.Split(dirSubPath, "/")
 }
