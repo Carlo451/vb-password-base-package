@@ -1,6 +1,7 @@
 package passwordstoreFilesystem
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 )
@@ -84,9 +85,38 @@ func (p *PasswordStoreContentDir) RemoveFile(f File) {
 	}
 }
 
+// RemoveFileWithFilename removes a file from the directory with filename
+func (p *PasswordStoreContentDir) RemoveFileWithFilename(fileName string) {
+	for i, file := range p.contents {
+		if file.GetFileName() == fileName {
+			p.contents = append(p.contents[:i], p.contents[i+1:]...)
+		}
+	}
+}
+
 // ReturnFiles returns the files of the directory
 func (p *PasswordStoreContentDir) ReturnFiles() []File {
 	return p.contents
+}
+
+// ReturnFile returns the file with the specific name if exists
+func (p *PasswordStoreContentDir) ReturnFile(fileName string) (File, error) {
+	for _, file := range p.contents {
+		if file.GetFileName() == fileName {
+			return file, nil
+		}
+	}
+	return nil, errors.New("file not found")
+}
+
+// LookUpFile checks if file with that name exists
+func (p *PasswordStoreContentDir) LookUpFile(fileName string) bool {
+	for _, file := range p.ReturnFiles() {
+		if file.GetFileName() == fileName {
+			return true
+		}
+	}
+	return false
 }
 
 // NewCleanContentDirectory creates a new ContentDirectory with the parent dir and the corresponding filesystem entry

@@ -2,10 +2,11 @@ package api
 
 import (
 	"errors"
-	"github.com/Carlo451/vb-password-base-package/logger"
-	"github.com/Carlo451/vb-password-base-package/passwordstore/passwordstoreFilesystem"
-	"github.com/Carlo451/vb-password-base-package/pathparser"
 	"path/filepath"
+
+	"github.com/Carlo451/vb-password-base-package/logger"
+	"github.com/Carlo451/vb-password-base-package/passwordstoreFilesystem"
+	"github.com/Carlo451/vb-password-base-package/pathparser"
 )
 
 type PasswordStoreHandler struct {
@@ -74,7 +75,7 @@ func (h *PasswordStoreHandler) InsertContentInContentDirectory(path, storeName, 
 	return false, errors.New("the content directory in the Path does not exist")
 }
 
-// UpdateContentInContentDirectory updates the content of a content file - or creates a content file if the one with that identifer does not exist
+// UpdateContentInContentDirectory updates the content of a content file - or creates a content file if the one with that identifier does not exist
 // path - path to the content Directory
 // basePath - path to the Password Store Base - the directory where all Stores are stored
 // storeName - the name of the root password store

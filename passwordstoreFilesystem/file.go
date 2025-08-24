@@ -8,6 +8,7 @@ type PasswordStoreContentFile struct {
 	directory Directory
 }
 
+// SetDirectory - sets the directory of the file
 func (p *PasswordStoreContentFile) SetDirectory(directory Directory) {
 	p.directory = directory
 }
@@ -17,7 +18,7 @@ func (p *PasswordStoreContentFile) GetFileName() string {
 	return p.name
 }
 
-// SetDirectory - sets the directory of the file
+// GetDirectoryName -returns dir name
 func (p *PasswordStoreContentFile) GetDirectoryName() string {
 	return p.directory.GetDirName()
 }
