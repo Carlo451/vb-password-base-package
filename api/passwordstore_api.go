@@ -2,7 +2,6 @@ package api
 
 import (
 	"errors"
-	"path/filepath"
 
 	"github.com/Carlo451/vb-password-base-package/logger"
 	"github.com/Carlo451/vb-password-base-package/passwordstoreFilesystem"
@@ -26,7 +25,7 @@ func (h *PasswordStoreHandler) CreateCustomPasswordStore(name string, configs []
 }
 
 func (h *PasswordStoreHandler) ReadPasswordStore(name string) passwordstoreFilesystem.PasswordStoreDir {
-	return passwordstoreFilesystem.ReadDirDownFromPath(filepath.Join(h.path, name))
+	return passwordstoreFilesystem.ReadDirDownFromPath(h.combineRelativePathWithBasePath(name))
 }
 
 // AddContentDirectoryToStore Adds a new Content directory with the given content and identifiers as well as the corresponding subdirectories in the path
@@ -37,7 +36,7 @@ func (h *PasswordStoreHandler) ReadPasswordStore(name string) passwordstoreFiles
 // content - the content
 // identifier - the name of the file
 func (h *PasswordStoreHandler) AddContentDirectoryToStore(path, storeName, contentDirName, content, identifier string) {
-	parsedPath := pathparser.ParsePathWithContentDirectory(h.combineRelativePathWithBasePath(storeName), h.combineRelativePathWithBasePath(filepath.Join(storeName, path), contentDirName))
+	parsedPath := pathparser.ParsePathWithContentDirectory(h.combineRelativePathWithBasePath(storeName), h.combineRelativePathWithBasePath(storeName, path, contentDirName))
 	store := h.ReadPasswordStore(storeName)
 	dir, exists, remaining := checkIfSubDirPathExistsAndReturnLastSubDir(store, parsedPath.SubDirectories)
 	if exists {
@@ -57,7 +56,7 @@ func (h *PasswordStoreHandler) AddContentDirectoryToStore(path, storeName, conte
 // content - the content
 // identifier - the name of the file
 func (h *PasswordStoreHandler) InsertContentInContentDirectory(path, storeName, content, identifier string) (bool, error) {
-	dirExists, err := CheckIfContentDirectoryExists(h.combineRelativePathWithBasePath(path))
+	dirExists, err := CheckIfContentDirectoryExists(h.combineRelativePathWithBasePath(storeName, path))
 	if err != nil {
 		return false, err
 	}
@@ -66,7 +65,7 @@ func (h *PasswordStoreHandler) InsertContentInContentDirectory(path, storeName, 
 			return false, errors.New("content file already exists, it needs to be updated not inserted")
 		}
 		store := h.ReadPasswordStore(storeName)
-		parsedPath := pathparser.ParsePathWithContentDirectory(h.combineRelativePathWithBasePath(storeName), h.combineRelativePathWithBasePath(path))
+		parsedPath := pathparser.ParsePathWithContentDirectory(h.combineRelativePathWithBasePath(storeName), h.combineRelativePathWithBasePath(storeName, path))
 		dir, exists, _ := checkIfSubDirPathExistsAndReturnLastSubDir(store, parsedPath.SubDirectories)
 		if exists {
 			return writeOrOverwriteFileInContentDir(dir, parsedPath.ContentDirectory, content, identifier)
@@ -82,7 +81,7 @@ func (h *PasswordStoreHandler) InsertContentInContentDirectory(path, storeName, 
 // content - the content
 // identifier - the name of the file
 func (h *PasswordStoreHandler) UpdateContentInContentDirectory(path, storeName, content, identifier string) (bool, error) {
-	dirExists, err := CheckIfContentDirectoryExists(h.combineRelativePathWithBasePath(path))
+	dirExists, err := CheckIfContentDirectoryExists(h.combineRelativePathWithBasePath(storeName, path))
 	if err != nil {
 		logger.ApiLogger.Error("the content directory does not exist")
 		return false, err
@@ -93,7 +92,7 @@ func (h *PasswordStoreHandler) UpdateContentInContentDirectory(path, storeName, 
 			return h.InsertContentInContentDirectory(path, storeName, content, identifier)
 		}
 		store := h.ReadPasswordStore(storeName)
-		parsedPath := pathparser.ParsePathWithContentDirectory(filepath.Join(h.path, storeName), path)
+		parsedPath := pathparser.ParsePathWithContentDirectory(h.combineRelativePathWithBasePath(storeName), h.combineRelativePathWithBasePath(storeName, path))
 		dir, exists, _ := checkIfSubDirPathExistsAndReturnLastSubDir(store, parsedPath.SubDirectories)
 		if exists {
 			return writeOrOverwriteFileInContentDir(dir, parsedPath.ContentDirectory, content, identifier)
@@ -125,6 +124,11 @@ func (h *PasswordStoreHandler) RemoveDirectory(path, storeName string, removeSub
 	return false, nil
 }
 
+// MoveDirectory moves a content directory to another sub directory
+// path is the path to the current content directory
+// storeName is the name of the store
+// pathToNewSubDirectory is the path of the sub directory where the content dir should be moved
+// it gets the content of the directory and writes them to another directory
 func (h *PasswordStoreHandler) MoveDirectory(path, storeName, pathToNewSubDirectory string) (bool, error) {
 	contentDir, err := h.ReadContentDir(path, storeName)
 	if err != nil {
@@ -144,7 +148,7 @@ func (h *PasswordStoreHandler) ReadContentDir(path, storeName string) (*password
 	}
 	if dirExists {
 		store := h.ReadPasswordStore(storeName)
-		parsedPath := pathparser.ParsePathWithContentDirectory(h.combineRelativePathWithBasePath(storeName), h.combineRelativePathWithBasePath(filepath.Join(storeName, path)))
+		parsedPath := pathparser.ParsePathWithContentDirectory(h.combineRelativePathWithBasePath(storeName), h.combineRelativePathWithBasePath(storeName, path))
 		dir, exists, _ := checkIfSubDirPathExistsAndReturnLastSubDir(store, parsedPath.SubDirectories)
 		if exists {
 			for _, contentDir := range dir.GetContentDirectories() {

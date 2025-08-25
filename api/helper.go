@@ -124,8 +124,9 @@ func (h *PasswordStoreHandler) combineRelativePathWithBasePath(relativePath ...s
 		if strings.Contains(lastString, removedBasePathOfArgs[i]) {
 			_, editedArg, _ := strings.Cut(lastString, removedBasePathOfArgs[i])
 			removedBasePathOfArgs[i+1] = editedArg
-			lastString = removedBasePathOfArgs[i]
+
 		}
+		lastString = removedBasePathOfArgs[i]
 	}
 
 	return filepath.Join(removedBasePathOfArgs...)

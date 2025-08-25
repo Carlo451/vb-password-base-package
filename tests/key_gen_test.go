@@ -1,4 +1,4 @@
-package keygentests
+package tests
 
 import (
 	"fmt"

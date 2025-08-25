@@ -1,4 +1,4 @@
-package asymmatriccrypto
+package tests
 
 import (
 	"testing"

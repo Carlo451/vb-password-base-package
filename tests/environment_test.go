@@ -1,4 +1,4 @@
-package environment
+package tests
 
 import (
 	"github.com/Carlo451/vb-password-base-package/environment"
