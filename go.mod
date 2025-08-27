@@ -1,6 +1,6 @@
 module github.com/Carlo451/vb-password-base-package
 
-go 1.24.5
+go 1.24
 
 require (
 	filippo.io/age v1.2.1
