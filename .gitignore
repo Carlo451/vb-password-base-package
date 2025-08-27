@@ -16,9 +16,6 @@
 # Vendor directory (if you don't use Go modules or vendor manually)
 vendor/
 
-# Go module cache (not needed in repo)
-.gocache/
-go.sum
 
 # IDE/editor files
 .idea/

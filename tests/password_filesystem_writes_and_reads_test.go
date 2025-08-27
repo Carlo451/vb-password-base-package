@@ -10,12 +10,17 @@ import (
 	"github.com/Carlo451/vb-password-base-package/environment"
 )
 
-const (
-	basePath  = "/home/carl-moritz/vB-Password-Store"
-	storeName = "testStore"
-)
+var basePath = "/home/carl-moritz/vB-Password-Store"
+var storeName = "testStore"
 
 func setup() api.PasswordStoreHandler {
+	envBasePath, basePathExists := environment.LookUpAndGetEnvValue("VB_BASE_PACKAGE_TEST_BASEPATH")
+	if basePathExists {
+		basePath = envBasePath
+	} else {
+		log.Println("Could not find VB_BASE_PACKAGE_TEST_BASEPATH -> uses: " + basePath)
+	}
+
 	os.Mkdir(basePath, 0755)
 	os.Setenv("VB_PASSWORDSTORE_BASE_DIR", basePath)
 	path, _ := environment.LookUpAndGetEnvValue("VB_PASSWORDSTORE_BASE_DIR")
@@ -297,6 +302,119 @@ func TestRemoveContentInContentDir_AndRemoveEmptyContentDir_RelativePaths(t *tes
 	store := api.CheckIfDirectoryExists(filepath.Join(basePath, storeName, "/extraContent"))
 	if store {
 		t.Errorf("Since extra content directory is empty too after the content dir was deleted, it should have been removed too.")
+	}
+	teardown()
+}
+
+func TestContentDirectoryMoveToAnotherDirectory(t *testing.T) {
+	handler := setup()
+	handler.AddContentDirectoryToStore("/extraContent/Subdir/youtube/personal", storeName, "content", "password123", "password")
+	handler.MoveDirectory(filepath.Join(basePath, storeName, "/extraContent/Subdir/youtube/personal/content"), storeName, "/extraContent/movedContent")
+	contentDir, err := handler.ReadContentDir("/extraContent/movedContent/content", storeName)
+	if err != nil {
+		t.Errorf("ContentDirectory should not return an error")
+	}
+	for _, file := range contentDir.ReturnFiles() {
+		if file.GetFileName() == "password" {
+			password := file.GetContent()
+			if password != "password123" {
+				t.Errorf("Something went wrong")
+			}
+		}
+	}
+	// empty subdirs should be deleted
+	_, errEmptyDir := os.Stat(filepath.Join(basePath, storeName+"/extraContent/Subdir/"))
+	if errEmptyDir == nil {
+		t.Errorf("dir should not exist anymore")
+	}
+	teardown()
+}
+
+func TestContentDirectoryMoveToAnotherDirectory_RelativePaths(t *testing.T) {
+	handler := setup()
+	handler.AddContentDirectoryToStore("/extraContent/Subdir/youtube/personal", storeName, "content", "password123", "password")
+	handler.MoveDirectory("/extraContent/Subdir/youtube/personal/content", storeName, "/extraContent/movedContent")
+	contentDir, err := handler.ReadContentDir("/extraContent/movedContent/content", storeName)
+	if err != nil {
+		t.Errorf("ContentDirectory should not return an error")
+	}
+	for _, file := range contentDir.ReturnFiles() {
+		if file.GetFileName() == "password" {
+			password := file.GetContent()
+			if password != "password123" {
+				t.Errorf("Something went wrong")
+			}
+		}
+	}
+	// empty subdirs should be deleted
+	_, errEmptyDir := os.Stat(filepath.Join(basePath, storeName+"/extraContent/Subdir/"))
+	if errEmptyDir == nil {
+		t.Errorf("dir should not exist anymore")
+	}
+	teardown()
+}
+
+func TestContentDirectoryMoveToAnotherDirectory_DeletionTillSubDir(t *testing.T) {
+	handler := setup()
+	handler.AddContentDirectoryToStore("/extraContent/Subdir/youtube/personal", storeName, "content", "password123", "password")
+	handler.AddContentDirectoryToStore("/extraContent/Subdir/", storeName, "content", "password123", "password")
+	handler.MoveDirectory("/extraContent/Subdir/youtube/personal/content", storeName, "/extraContent/movedContent")
+	contentDir, err := handler.ReadContentDir("/extraContent/movedContent/content", storeName)
+	if err != nil {
+		t.Errorf("ContentDirectory should not return an error")
+	}
+	for _, file := range contentDir.ReturnFiles() {
+		if file.GetFileName() == "password" {
+			password := file.GetContent()
+			if password != "password123" {
+				t.Errorf("Something went wrong")
+			}
+		}
+	}
+	// empty subdirs should be deleted
+	_, errEmptyDir := os.Stat(filepath.Join(basePath, storeName+"/extraContent/Subdir/youtube"))
+	if errEmptyDir == nil {
+		t.Errorf("dir should not exist anymore")
+	}
+	// in Subdir is another contentDir should not be deleted
+	_, errNotEmptyDir := os.Stat(filepath.Join(basePath, storeName+"/extraContent/Subdir/"))
+	if errNotEmptyDir != nil {
+		t.Errorf("dir should not exist anymore")
+	}
+	teardown()
+}
+
+func TestContentDirectoryMoveToAnotherSubDir_MultipleContents(t *testing.T) {
+	handler := setup()
+	handler.AddContentDirectoryToStore("/extraContent/Subdir/youtube/personal", storeName, "content", "password123", "password")
+	handler.AddContentDirectoryToStore("/extraContent/Subdir/youtube/personal", storeName, "anotherContent", "password123", "password")
+	handler.InsertContentInContentDirectory("/extraContent/Subdir/youtube/personal/content", storeName, "username", "username")
+	handler.MoveDirectory("/extraContent/Subdir/youtube/personal/content", storeName, "/extraContent/movedContent")
+	contentDir, err := handler.ReadContentDir("/extraContent/movedContent/content", storeName)
+	if err != nil {
+		t.Errorf("ContentDirectory should not return an error")
+	}
+	if len(contentDir.ReturnFiles()) != 2 {
+		t.Errorf("contentDir should contain two files")
+	}
+	for _, file := range contentDir.ReturnFiles() {
+		if file.GetFileName() == "password" {
+			password := file.GetContent()
+			if password != "password123" {
+				t.Errorf("Something went wrong")
+			}
+		}
+		if file.GetFileName() == "username" {
+			username := file.GetContent()
+			if username != "username" {
+				t.Errorf("Something went wrong")
+			}
+		}
+	}
+	// empty subdirs should be deleted
+	_, errEmptyDir := os.Stat(filepath.Join(basePath, storeName+"/extraContent/Subdir/youtube/personal"))
+	if errEmptyDir != nil {
+		t.Errorf("dir should not exist anymore")
 	}
 	teardown()
 }
