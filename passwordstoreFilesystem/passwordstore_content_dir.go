@@ -81,6 +81,7 @@ func (p *PasswordStoreContentDir) RemoveFile(f File) {
 	for i, file := range p.contents {
 		if file.GetFileName() == f.GetFileName() {
 			p.contents = append(p.contents[:i], p.contents[i+1:]...)
+			RemoveFile(file)
 		}
 	}
 }
@@ -90,6 +91,7 @@ func (p *PasswordStoreContentDir) RemoveFileWithFilename(fileName string) {
 	for i, file := range p.contents {
 		if file.GetFileName() == fileName {
 			p.contents = append(p.contents[:i], p.contents[i+1:]...)
+			RemoveFile(file)
 		}
 	}
 }

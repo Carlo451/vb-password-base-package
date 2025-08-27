@@ -230,3 +230,73 @@ func TestReadContentDir(t *testing.T) {
 	}
 	teardown()
 }
+
+func TestRemoveContentInContentDir(t *testing.T) {
+	handler := setup()
+	handler.AddContentDirectoryToStore(filepath.Join(basePath, storeName+"/extraContent"), storeName, "content", "password123", "password")
+	handler.InsertContentInContentDirectory(filepath.Join(basePath, storeName+"/extraContent/content"), storeName, "password123", "username")
+	error := handler.DeleteContentInContentDirectory(filepath.Join(basePath, storeName+"/extraContent/content"), storeName, "password")
+	if error != nil {
+		t.Errorf("Something went wrong when deleting content")
+	}
+	if api.CheckIfContentFileExists(filepath.Join(basePath, storeName, "/extraContent/content/password")) {
+		t.Errorf("This File should have been removed")
+	}
+	if !api.CheckIfContentFileExists(filepath.Join(basePath, storeName, "/extraContent/content/username")) {
+		t.Errorf("This File should still be in the directory")
+	}
+
+	teardown()
+}
+func TestRemoveContentInContentDir_RelativePaths(t *testing.T) {
+	handler := setup()
+	handler.AddContentDirectoryToStore("/extraContent", storeName, "content", "password123", "username")
+	handler.InsertContentInContentDirectory("/extraContent/content", storeName, "password123", "password")
+	error := handler.DeleteContentInContentDirectory("/extraContent/content", storeName, "password")
+	if error != nil {
+		t.Errorf("Something went wrong when deleting content")
+	}
+	if api.CheckIfContentFileExists(filepath.Join(basePath, storeName, "/extraContent/content/password")) {
+		t.Errorf("This File should have been removed")
+	}
+	if !api.CheckIfContentFileExists(filepath.Join(basePath, storeName, "/extraContent/content/username")) {
+		t.Errorf("This File should still be in the directory")
+	}
+	teardown()
+}
+
+func TestRemoveContentInContentDir_AndRemoveEmptyContentDir(t *testing.T) {
+	handler := setup()
+	handler.AddContentDirectoryToStore(filepath.Join(basePath, storeName+"/extraContent"), storeName, "content", "password123", "password")
+	error := handler.DeleteContentInContentDirectory(filepath.Join(basePath, storeName+"/extraContent/content"), storeName, "password")
+	if error != nil {
+		t.Errorf("Something went wrong when deleting content")
+	}
+	contentDir, _ := api.CheckIfContentDirectoryExists(filepath.Join(basePath, storeName, "/extraContent/content"))
+	if contentDir {
+		t.Errorf("This contnetDIr was Empty and should have been removed too")
+	}
+	store := api.CheckIfDirectoryExists(filepath.Join(basePath, storeName, "/extraContent"))
+	if store {
+		t.Errorf("Since extra content directory is empty too after the content dir was deleted, it should have been removed too.")
+	}
+	teardown()
+}
+
+func TestRemoveContentInContentDir_AndRemoveEmptyContentDir_RelativePaths(t *testing.T) {
+	handler := setup()
+	handler.AddContentDirectoryToStore("/extraContent", storeName, "content", "password123", "password")
+	error := handler.DeleteContentInContentDirectory("/extraContent/content", storeName, "password")
+	if error != nil {
+		t.Errorf("Something went wrong when deleting content")
+	}
+	contentDir, _ := api.CheckIfContentDirectoryExists(filepath.Join(basePath, storeName, "/extraContent/content"))
+	if contentDir {
+		t.Errorf("This contnetDIr was Empty and should have been removed too")
+	}
+	store := api.CheckIfDirectoryExists(filepath.Join(basePath, storeName, "/extraContent"))
+	if store {
+		t.Errorf("Since extra content directory is empty too after the content dir was deleted, it should have been removed too.")
+	}
+	teardown()
+}

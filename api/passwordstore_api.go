@@ -29,8 +29,7 @@ func (h *PasswordStoreHandler) ReadPasswordStore(name string) passwordstoreFiles
 }
 
 // AddContentDirectoryToStore Adds a new Content directory with the given content and identifiers as well as the corresponding subdirectories in the path
-// path - path to the last sub dir, where the new contentDir should be created
-// basePath - path to the Password Store Base - the directory where all Stores are stored
+// path to the last sub dir, where the new contentDir should be created
 // storeName - the name of the root password store
 // contentDirName - the name of the content directory
 // content - the content
@@ -51,7 +50,6 @@ func (h *PasswordStoreHandler) AddContentDirectoryToStore(path, storeName, conte
 
 // InsertContentInContentDirectory inserts a new contentFile into an already existing content Directory
 // path - path to the content Directory
-// basePath - path to the Password Store Base - the directory where all Stores are stored
 // storeName - the name of the root password store
 // content - the content
 // identifier - the name of the file
@@ -101,6 +99,30 @@ func (h *PasswordStoreHandler) UpdateContentInContentDirectory(path, storeName, 
 	return false, errors.New("the content directory in the Path does not exist")
 }
 
+// DeleteContentInContentDirectory deletes content of content dir -> if that is the only input in the dir, all underlying dir which are empty are removed too
+// path to the content directory
+// storeName
+// identifier name of the file
+func (h *PasswordStoreHandler) DeleteContentInContentDirectory(path, storeName, identifier string) error {
+	if !CheckIfContentFileExists(h.combineRelativePathWithBasePath(storeName, path, identifier)) {
+		logger.ApiLogger.Warn("the file doesn't exist")
+		return error(errors.New("the file doesn't exist"))
+	}
+	contentDir, _ := h.ReadContentDir(h.combineRelativePathWithBasePath(path), storeName)
+	contentDir.RemoveFileWithFilename(identifier)
+	if len(contentDir.ReturnFiles()) == 0 {
+		deleted, _ := h.RemoveDirectory(path, storeName, true)
+		if !deleted {
+			return error(errors.New("the now empty ContentDirectory could not be deleted"))
+		}
+	}
+	return nil
+}
+
+// RemoveDirectory removes a directory
+// path to the directory
+// storeName
+// removeSubDirs whether the directories up the tree should be deleted too if they are empty
 func (h *PasswordStoreHandler) RemoveDirectory(path, storeName string, removeSubDirs bool) (bool, error) {
 	dirExists := CheckIfDirectoryExists(h.combineRelativePathWithBasePath(storeName, path))
 	if dirExists {
@@ -141,6 +163,9 @@ func (h *PasswordStoreHandler) MoveDirectory(path, storeName, pathToNewSubDirect
 	return true, nil
 }
 
+// ReadContentDir reads and returns the a content directory
+// path to the content directory
+// storeName
 func (h *PasswordStoreHandler) ReadContentDir(path, storeName string) (*passwordstoreFilesystem.PasswordStoreContentDir, error) {
 	dirExists, err := CheckIfContentDirectoryExists(h.combineRelativePathWithBasePath(storeName, path))
 	if err != nil {

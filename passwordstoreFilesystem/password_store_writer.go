@@ -6,7 +6,6 @@ import (
 )
 
 func WriteFileContents(file File) {
-	file.SetContent(file.GetContent())
 	f, err := os.OpenFile(file.GetAbsolutePath(), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
 		log.Fatal(err)
@@ -34,5 +33,12 @@ func RemoveDirectory(dir Directory) {
 		log.Default().Println("Directory: " + dir.GetAbsoluteDirectoryPath() + " could not be created because " + err.Error())
 	} else {
 		log.Default().Println("Directory: " + dir.GetAbsoluteDirectoryPath() + " written successfully")
+	}
+}
+
+func RemoveFile(file File) {
+	err := os.Remove(file.GetAbsolutePath())
+	if err != nil {
+		log.Fatal(err)
 	}
 }
